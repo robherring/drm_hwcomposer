@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifeq ($(strip $(BOARD_USES_DRM_HWCOMPOSER)),true)
+ifeq ($(strip $(BOARD_USES_DRM_HWCOMPOSER)),)
 
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
@@ -66,7 +66,7 @@ LOCAL_SRC_FILES += drmgenericimporter.cpp
 LOCAL_CPPFLAGS += -DUSE_DRM_GENERIC_IMPORTER
 endif
 
-LOCAL_MODULE := hwcomposer.drm
+LOCAL_MODULE := hwcomposer.ranchu
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
