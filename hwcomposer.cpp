@@ -703,7 +703,7 @@ static int hwc_device_open(const struct hw_module_t *module, const char *name,
     return ret;
   }
 
-  ret = ctx->pre_compositor.Init();
+  //ret = ctx->pre_compositor.Init();
   if (ret) {
     ALOGE("Can't initialize OpenGL Compositor object %d", ret);
     delete ctx;
