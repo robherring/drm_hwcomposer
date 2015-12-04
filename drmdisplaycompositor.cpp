@@ -134,6 +134,8 @@ int DrmDisplayCompositor::QueueComposition(
 int DrmDisplayCompositor::ApplyFrame(DrmDisplayComposition *display_comp) {
   int ret = 0;
 
+  ALOGI("ApplyFrame");
+
   drmModeAtomicReqPtr pset = drmModeAtomicAlloc();
   if (!pset) {
     ALOGE("Failed to allocate property set");

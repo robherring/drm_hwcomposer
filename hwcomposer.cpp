@@ -180,6 +180,8 @@ static int hwc_prepare(hwc_composer_device_1_t *dev, size_t num_displays,
     }
 
     int num_layers = display_contents[i]->numHwLayers;
+    ALOGI("prepare - %d layers", num_layers);
+
     for (int j = 0; j < num_layers; j++) {
       hwc_layer_1_t *layer = &display_contents[i]->hwLayers[j];
 
@@ -238,6 +240,7 @@ static int hwc_add_layer(int display, hwc_context_t *ctx, hwc_layer_1_t *layer,
 static int hwc_set(hwc_composer_device_1_t *dev, size_t num_displays,
                    hwc_display_contents_1_t **display_contents) {
   ATRACE_CALL();
+  ALOGI("set");
   struct hwc_context_t *ctx = (struct hwc_context_t *)&dev->common;
   Composition *composition =
       ctx->drm.compositor()->CreateComposition(ctx->importer);
@@ -269,6 +272,7 @@ static int hwc_set(hwc_composer_device_1_t *dev, size_t num_displays,
 
     if (num_layers > num_planes) {
       use_pre_compositor = true;
+      ALOGE("ERROR: can't use GL compositor");
       // Reserve one of the planes for the result of the pre compositor.
       num_planes--;
     }
@@ -419,8 +423,10 @@ static int hwc_set(hwc_composer_device_1_t *dev, size_t num_displays,
 
 static int hwc_event_control(struct hwc_composer_device_1 *dev, int display,
                              int event, int enabled) {
-  if (event != HWC_EVENT_VSYNC || (enabled != 0 && enabled != 1))
+  if (event != HWC_EVENT_VSYNC || (enabled != 0 && enabled != 1)) {
+    ALOGE("hwc_event_control error");
     return -EINVAL;
+  }
 
   struct hwc_context_t *ctx = (struct hwc_context_t *)&dev->common;
   hwc_drm_display_t *hd = &ctx->displays[display];
@@ -665,6 +671,8 @@ static int hwc_enumerate_displays(struct hwc_context_t *ctx) {
   int ret;
   for (DrmResources::ConnectorIter c = ctx->drm.begin_connectors();
        c != ctx->drm.end_connectors(); ++c) {
+
+    ALOGE("getting display\n\n");
     ret = hwc_initialize_display(ctx, (*c)->display());
     if (ret) {
       ALOGE("Failed to initialize display %d", (*c)->display());

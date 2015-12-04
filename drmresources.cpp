@@ -260,6 +260,7 @@ DrmResources::ConnectorIter DrmResources::end_connectors() const {
 DrmConnector *DrmResources::GetConnectorForDisplay(int display) const {
   for (ConnectorIter iter = connectors_.begin(); iter != connectors_.end();
        ++iter) {
+    ALOGE("connector id %d - display %d", (*iter)->id(), (*iter)->display());
     if ((*iter)->display() == display)
       return *iter;
   }
@@ -394,6 +395,7 @@ int DrmResources::SetDisplayActiveMode(int display, const DrmMode &mode) {
 
   DrmCrtc *crtc = connector->encoder()->crtc();
   DrmProperty old_mode;
+  ALOGE("Getting property '%s'", crtc->mode_property().name().c_str());
   ret = GetCrtcProperty(*crtc, crtc->mode_property().name().c_str(), &old_mode);
   if (ret) {
     ALOGE("Failed to get old mode property from crtc %d", crtc->id());
