@@ -217,7 +217,7 @@ static int GenerateShaders(std::vector<AutoGLProgram> *blend_programs) {
 
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_images);
 
-  for (i = 1; i <= max_texture_images; i++) {
+  for (i = 1; i <= 7/*max_texture_images*/; i++) {
     std::ostringstream layer_count_formatter;
     layer_count_formatter << i;
     std::string layer_count(layer_count_formatter.str());
