@@ -412,30 +412,30 @@ int DrmResources::SetDisplayActiveMode(int display, const DrmMode &mode) {
     return ret;
   }
 
-  drmModePropertySetPtr pset = drmModePropertySetAlloc();
+  drmModeAtomicReqPtr pset = drmModeAtomicAlloc();
   if (!pset) {
     ALOGE("Failed to allocate property set");
     DestroyPropertyBlob(blob_id);
     return -ENOMEM;
   }
 
-  ret = drmModePropertySetAdd(pset, crtc->id(), crtc->mode_property().id(),
-                              blob_id) ||
-        drmModePropertySetAdd(pset, connector->id(),
-                              connector->crtc_id_property().id(), crtc->id());
-  if (ret) {
-    ALOGE("Failed to add blob %d to pset", blob_id);
+  ret = drmModeAtomicAddProperty(pset, crtc->id(), crtc->mode_property().id(),
+                                 blob_id);
+  if (ret >= 0)
+      drmModeAtomicAddProperty(pset, connector->id(),
+                               connector->crtc_id_property().id(), crtc->id());
+  if (ret < 0) {
+    ALOGE("Failed to add blob %d to pset, ret %d", blob_id, ret);
     DestroyPropertyBlob(blob_id);
-    drmModePropertySetFree(pset);
+    drmModeAtomicFree(pset);
     return ret;
   }
 
-  ret =
-      drmModePropertySetCommit(fd_, DRM_MODE_ATOMIC_ALLOW_MODESET, NULL, pset);
+  ret = drmModeAtomicCommit(fd_, pset, DRM_MODE_ATOMIC_ALLOW_MODESET, NULL);
 
-  drmModePropertySetFree(pset);
+  drmModeAtomicFree(pset);
 
-  if (ret) {
+  if (ret < 0) {
     ALOGE("Failed to commit pset ret=%d\n", ret);
     DestroyPropertyBlob(blob_id);
     return ret;

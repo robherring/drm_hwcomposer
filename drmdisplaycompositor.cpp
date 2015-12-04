@@ -134,7 +134,7 @@ int DrmDisplayCompositor::QueueComposition(
 int DrmDisplayCompositor::ApplyFrame(DrmDisplayComposition *display_comp) {
   int ret = 0;
 
-  drmModePropertySetPtr pset = drmModePropertySetAlloc();
+  drmModeAtomicReqPtr pset = drmModeAtomicAlloc();
   if (!pset) {
     ALOGE("Failed to allocate property set");
     return -ENOMEM;
@@ -149,7 +149,7 @@ int DrmDisplayCompositor::ApplyFrame(DrmDisplayComposition *display_comp) {
       ret = sync_wait(layer->acquireFenceFd, -1);
       if (ret) {
         ALOGE("Failed to wait for acquire %d/%d", layer->acquireFenceFd, ret);
-        drmModePropertySetFree(pset);
+        drmModeAtomicFree(pset);
         return ret;
       }
       close(layer->acquireFenceFd);
@@ -157,31 +157,30 @@ int DrmDisplayCompositor::ApplyFrame(DrmDisplayComposition *display_comp) {
     }
 
     DrmPlane *plane = iter->plane;
-    ret =
-        drmModePropertySetAdd(pset, plane->id(), plane->crtc_property().id(),
-                              iter->crtc->id()) ||
-        drmModePropertySetAdd(pset, plane->id(), plane->fb_property().id(),
-                              iter->bo.fb_id) ||
-        drmModePropertySetAdd(pset, plane->id(), plane->crtc_x_property().id(),
-                              layer->displayFrame.left) ||
-        drmModePropertySetAdd(pset, plane->id(), plane->crtc_y_property().id(),
-                              layer->displayFrame.top) ||
-        drmModePropertySetAdd(
-            pset, plane->id(), plane->crtc_w_property().id(),
-            layer->displayFrame.right - layer->displayFrame.left) ||
-        drmModePropertySetAdd(
-            pset, plane->id(), plane->crtc_h_property().id(),
-            layer->displayFrame.bottom - layer->displayFrame.top) ||
-        drmModePropertySetAdd(pset, plane->id(), plane->src_x_property().id(),
-                              layer->sourceCropf.left) ||
-        drmModePropertySetAdd(pset, plane->id(), plane->src_y_property().id(),
-                              layer->sourceCropf.top) ||
-        drmModePropertySetAdd(
-            pset, plane->id(), plane->src_w_property().id(),
-            (int)(layer->sourceCropf.right - layer->sourceCropf.left) << 16) ||
-        drmModePropertySetAdd(
-            pset, plane->id(), plane->src_h_property().id(),
-            (int)(layer->sourceCropf.bottom - layer->sourceCropf.top) << 16);
+    ret = drmModeAtomicAddProperty(pset, plane->id(), plane->crtc_property().id(),
+                             iter->crtc->id()) < 0;
+    ret |= drmModeAtomicAddProperty(pset, plane->id(), plane->fb_property().id(),
+                             iter->bo.fb_id) < 0;
+    ret |= drmModeAtomicAddProperty(pset, plane->id(), plane->crtc_x_property().id(),
+                          layer->displayFrame.left) < 0;
+    ret |= drmModeAtomicAddProperty(pset, plane->id(), plane->crtc_y_property().id(),
+                          layer->displayFrame.top) < 0;
+    ret |= drmModeAtomicAddProperty(
+        pset, plane->id(), plane->crtc_w_property().id(),
+        layer->displayFrame.right - layer->displayFrame.left) < 0;
+    ret |= drmModeAtomicAddProperty(
+        pset, plane->id(), plane->crtc_h_property().id(),
+        layer->displayFrame.bottom - layer->displayFrame.top) < 0;
+    ret |= drmModeAtomicAddProperty(pset, plane->id(), plane->src_x_property().id(),
+                          layer->sourceCropf.left) < 0;
+    ret |= drmModeAtomicAddProperty(pset, plane->id(), plane->src_y_property().id(),
+                          layer->sourceCropf.top) < 0;
+    ret |= drmModeAtomicAddProperty(
+        pset, plane->id(), plane->src_w_property().id(),
+        (int)(layer->sourceCropf.right - layer->sourceCropf.left) << 16) < 0;
+    ret |= drmModeAtomicAddProperty(
+        pset, plane->id(), plane->src_h_property().id(),
+        (int)(layer->sourceCropf.bottom - layer->sourceCropf.top) << 16) < 0;
     if (ret) {
       ALOGE("Failed to add plane %d to set", plane->id());
       break;
@@ -189,12 +188,12 @@ int DrmDisplayCompositor::ApplyFrame(DrmDisplayComposition *display_comp) {
   }
 
   if (!ret) {
-    ret = drmModePropertySetCommit(drm_->fd(), 0, drm_, pset);
+    ret = drmModeAtomicCommit(drm_->fd(), pset, 0, drm_);
     if (ret)
       ALOGE("Failed to commit pset ret=%d\n", ret);
   }
   if (pset)
-    drmModePropertySetFree(pset);
+    drmModeAtomicFree(pset);
 
   return ret;
 }
