@@ -517,8 +517,10 @@ int DrmDisplayCompositor::Composite() {
       return -EINVAL;
   }
 
-  if (active_composition_)
-    active_composition_->FinishComposition();
+
+//  if (active_composition_)
+    composition->FinishComposition();
+
 
   ret = pthread_mutex_lock(&lock_);
   if (ret)
