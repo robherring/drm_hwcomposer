@@ -331,7 +331,8 @@ int DrmDisplayCompositor::ApplyFrame(DrmDisplayComposition *display_comp) {
       break;
     }
 
-    uint64_t rotation;
+    uint64_t rotation = 0;
+#if 0
     switch (layer.transform) {
       case DrmHwcTransform::kFlipH:
         rotation = 1 << DRM_REFLECT_X;
@@ -358,7 +359,7 @@ int DrmDisplayCompositor::ApplyFrame(DrmDisplayComposition *display_comp) {
     }
     if (ret)
       break;
-
+#endif
     // TODO: Once we have atomic test, this should fall back to GL
     if (rotation && plane->rotation_property().id() == 0) {
       ALOGE("Rotation is not supported on plane %d", plane->id());
