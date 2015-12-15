@@ -62,19 +62,6 @@ int DrmGenericImporter::Init() {
     ALOGE("Failed to open gralloc module");
     return ret;
   }
-
-  int fd;
-  if (gralloc_->perform)
-    ret = gralloc_->perform(gralloc_, GRALLOC_MODULE_PERFORM_GET_DRM_FD, &fd);
-
-  if (ret || fd < 0) {
-      fd = -1;
-  }
-
-  drm_magic_t magic;
-  drmGetMagic(fd, &magic);
-  drmAuthMagic(drm_->fd(), magic);
-
   return 0;
 }
 
