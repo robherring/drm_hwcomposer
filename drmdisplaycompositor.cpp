@@ -462,7 +462,7 @@ int DrmDisplayCompositor::ApplyDpms(DrmDisplayComposition *display_comp) {
 int DrmDisplayCompositor::Composite() {
   ATRACE_CALL();
 
-  if (0) { //!pre_compositor_) {
+  if (!pre_compositor_) {
     pre_compositor_.reset(new GLWorkerCompositor());
     int ret = pre_compositor_->Init();
     if (ret) {
