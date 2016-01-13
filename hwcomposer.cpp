@@ -387,7 +387,7 @@ static int hwc_prepare(hwc_composer_device_1_t *dev, size_t num_displays,
     if (!display_contents[i])
       continue;
 
-    bool use_framebuffer_target = false;
+    bool use_framebuffer_target = true;
     DrmMode mode;
     if (i == HWC_DISPLAY_VIRTUAL) {
       use_framebuffer_target = true;
