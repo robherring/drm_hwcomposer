@@ -472,7 +472,7 @@ int GLWorkerCompositor::Init() {
                                    8,
                                    EGL_NONE};
 
-  const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+  const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
   egl_display_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if (egl_display_ == EGL_NO_DISPLAY) {
@@ -533,13 +533,14 @@ int GLWorkerCompositor::Init() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   vertex_buffer_.reset(vertex_buffer);
 
+#if 0
   std::ostringstream shader_log;
   blend_programs_.emplace_back(GenerateProgram(1, &shader_log));
   if (blend_programs_.back().get() == 0) {
     ALOGE("%s", shader_log.str().c_str());
     return 1;
   }
-
+#endif
   return 0;
 }
 
