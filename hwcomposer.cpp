@@ -48,6 +48,7 @@
 #include <utils/Trace.h>
 
 #define UM_PER_INCH 25400
+#define MIN_DPI 160 /* Min 160 DPI value to keep things sane*/
 
 namespace android {
 
@@ -760,13 +761,20 @@ static int hwc_get_display_attributes(struct hwc_composer_device_1 *dev,
         values[i] = mode.v_display();
         break;
       case HWC_DISPLAY_DPI_X:
-        /* Dots per 1000 inches */
-        values[i] = mm_width ? (mode.h_display() * UM_PER_INCH) / mm_width : 0;
+	if (mm_width) {
+            /* Dots per 1000 inches */
+            int32_t dpki = (mode.h_display() * UM_PER_INCH) / mm_width;
+            values[i] = std::max(dpki, MIN_DPI*1000);
+	} else
+            values[i] = 0;
         break;
       case HWC_DISPLAY_DPI_Y:
-        /* Dots per 1000 inches */
-        values[i] =
-            mm_height ? (mode.v_display() * UM_PER_INCH) / mm_height : 0;
+        if (mm_height) {
+            /* Dots per 1000 inches */
+            int32_t dpki = (mode.v_display() * UM_PER_INCH) / mm_height;
+            values[i] = std::max(dpki, MIN_DPI*1000);
+        } else
+            values[i] = 0;
         break;
     }
   }
