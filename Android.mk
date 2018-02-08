@@ -36,8 +36,6 @@ include $(CLEAR_VARS)
 LOCAL_SHARED_LIBRARIES := \
 	libcutils \
 	libdrm \
-	libEGL \
-	libGLESv2 \
 	libhardware \
 	liblog \
 	libsync \
@@ -62,7 +60,6 @@ LOCAL_SRC_FILES := \
 	drmmode.cpp \
 	drmplane.cpp \
 	drmproperty.cpp \
-	glworker.cpp \
 	hwcutils.cpp \
 	platform.cpp \
 	platformdrmgeneric.cpp \
