@@ -539,7 +539,7 @@ HWC2::Error DrmHwcTwo::HwcDisplay::PresentDisplay(int32_t *retire_fence) {
 
   std::vector<DrmPlane *> primary_planes(primary_planes_);
   std::vector<DrmPlane *> overlay_planes(overlay_planes_);
-  ret = composition->Plan(compositor_.squash_state(), &primary_planes,
+  ret = composition->Plan(&primary_planes,
                          &overlay_planes);
   if (ret) {
     ALOGE("Failed to plan the composition ret=%d", ret);
