@@ -25,7 +25,7 @@
 #include <xf86drmMode.h>
 
 #include <cutils/log.h>
-#include <gralloc_drm_handle.h>
+#include <android/gralloc_handle.h>
 #include <hardware/gralloc.h>
 
 namespace android {
@@ -63,51 +63,33 @@ int DrmGenericImporter::Init() {
   return 0;
 }
 
-uint32_t DrmGenericImporter::ConvertHalFormatToDrm(uint32_t hal_format) {
-  switch (hal_format) {
-    case HAL_PIXEL_FORMAT_RGB_888:
-      return DRM_FORMAT_BGR888;
-    case HAL_PIXEL_FORMAT_BGRA_8888:
-      return DRM_FORMAT_ARGB8888;
-    case HAL_PIXEL_FORMAT_RGBX_8888:
-      return DRM_FORMAT_XBGR8888;
-    case HAL_PIXEL_FORMAT_RGBA_8888:
-      return DRM_FORMAT_ABGR8888;
-    case HAL_PIXEL_FORMAT_RGB_565:
-      return DRM_FORMAT_BGR565;
-    case HAL_PIXEL_FORMAT_YV12:
-      return DRM_FORMAT_YVU420;
-    default:
-      ALOGE("Cannot convert hal format to drm format %u", hal_format);
-      return -EINVAL;
-  }
-}
-
 int DrmGenericImporter::ImportBuffer(buffer_handle_t handle, hwc_drm_bo_t *bo) {
-  gralloc_drm_handle_t *gr_handle = gralloc_drm_handle(handle);
-  if (!gr_handle)
+  int fd = gralloc_handle_get_fd(handle, 0);
+  if (fd < 0) {
+    ALOGE("no fd for handle");
     return -EINVAL;
+  }
 
   uint32_t gem_handle;
-  int ret = drmPrimeFDToHandle(drm_->fd(), gr_handle->prime_fd, &gem_handle);
+  int ret = drmPrimeFDToHandle(drm_->fd(), fd, &gem_handle);
   if (ret) {
-    ALOGE("failed to import prime fd %d ret=%d", gr_handle->prime_fd, ret);
+    ALOGE("failed to import prime fd %d ret=%d", fd, ret);
     return ret;
   }
 
   memset(bo, 0, sizeof(hwc_drm_bo_t));
-  bo->width = gr_handle->width;
-  bo->height = gr_handle->height;
-  bo->format = ConvertHalFormatToDrm(gr_handle->format);
-  bo->usage = gr_handle->usage;
-  bo->pitches[0] = gr_handle->stride;
+  gralloc_handle_get_buffer_dim(handle, &bo->width, &bo->height);
+  bo->format = gralloc_handle_get_fourcc_format(handle);
+  bo->usage = gralloc_handle_get_usage(handle);
+  bo->pitches[0] = gralloc_handle_get_stride(handle, 0);
+
   bo->gem_handles[0] = gem_handle;
   bo->offsets[0] = 0;
 
   ret = drmModeAddFB2(drm_->fd(), bo->width, bo->height, bo->format,
                       bo->gem_handles, bo->pitches, bo->offsets, &bo->fb_id, 0);
   if (ret) {
-    ALOGE("could not create drm fb %d", ret);
+    ALOGE("could not create drm fb %d, %x", ret, bo->format);
     return ret;
   }
 
